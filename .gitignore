@@ -1,0 +1,22 @@
+# Python
+venv/
+*.pyc
+__pycache__/
+backend/reminders.db
+.env
+*.env
+
+# Node
+node_modules/
+build/
+dist/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+backend/.env
+frontend/.env
+.env

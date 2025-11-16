@@ -1,0 +1,8 @@
+{
+  "apiKey": "your_lingo_api_key",
+  "projectId": "your_project_id",
+  "sourceLanguage": "en",
+  "targetLanguages": ["hi","ta","te","bn","es","fr","ar"],
+  "inputPath": "./frontend/src/locales/en.json",
+  "outputPath": "./frontend/src/locales"
+}
