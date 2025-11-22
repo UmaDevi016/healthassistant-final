@@ -13,6 +13,7 @@ from pydantic import BaseModel
 import httpx
 import openai
 from dotenv import load_dotenv
+import logging
 
 # optional TTS
 try:
@@ -26,11 +27,16 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 LINGO_API_KEY = os.getenv("LINGO_API_KEY", "")
 LINGO_PROJECT_ID = os.getenv("LINGO_PROJECT_ID", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 BASE_DIR = os.path.dirname(__file__)
 DB_PATH = os.getenv("DB_PATH", os.path.join(BASE_DIR, "reminders.db"))
 
 app = FastAPI(title="Multilingual Health Assistant API", version="1.0")
+
+# Logger
+logger = logging.getLogger("healthassistant.backend")
+logging.basicConfig(level=logging.INFO)
 
 app.add_middleware(
     CORSMiddleware,
@@ -61,6 +67,37 @@ def init_db():
 
 init_db()
 
+
+# Secrets helper: prefer environment variables, fall back to docker secret files (/run/secrets/*)
+def _load_secret_from_file(env_name: str, secret_paths=None) -> str:
+    """Return the value for `env_name` from the environment or from secret files.
+    secret_paths is a list of file paths to check in order.
+    """
+    val = os.getenv(env_name, "")
+    if val:
+        return val
+    # Default secret paths: docker secrets and local backend/.secrets
+    default_paths = [f"/run/secrets/{env_name}", os.path.join(BASE_DIR, ".secrets", env_name)]
+    if secret_paths:
+        default_paths = secret_paths + default_paths
+    for p in default_paths:
+        try:
+            if os.path.exists(p):
+                with open(p, "r", encoding="utf-8") as fh:
+                    data = fh.read().strip()
+                    if data:
+                        return data
+        except Exception:
+            continue
+    return ""
+
+
+# Re-load secrets from files if env vars weren't set
+LINGO_API_KEY = _load_secret_from_file("LINGO_API_KEY")
+LINGO_PROJECT_ID = _load_secret_from_file("LINGO_PROJECT_ID")
+OPENAI_API_KEY = _load_secret_from_file("OPENAI_API_KEY")
+GROQ_API_KEY = _load_secret_from_file("GROQ_API_KEY")
+
 # Models
 class TranslateRequest(BaseModel):
     text: str
@@ -88,18 +125,38 @@ async def call_lingo_translate(text: str, target: str) -> str | None:
             r = await client.post(url, json=payload, headers=headers)
             if r.status_code == 200:
                 data = r.json()
-                return data.get("translation") or data.get("translatedText") or data.get("result")
+                translation = data.get("translation") or data.get("translatedText") or data.get("result")
+                logger.info("translation_provider=lingo status=ok target=%s", target)
+                return translation
     except Exception:
+        logger.exception("translation_provider=lingo status=error target=%s", target)
         return None
     return None
+
+
+async def call_libretranslate(text: str, target: str) -> str | None:
+    """Fallback translation using LibreTranslate public instance for demo purposes."""
+    try:
+        url = "https://libretranslate.de/translate"
+        payload = {"q": text, "source": "auto", "target": target, "format": "text"}
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.post(url, data=payload)
+            if r.status_code == 200:
+                data = r.json()
+                translation = data.get("translatedText") or data.get("translation")
+                logger.info("translation_provider=libretranslate status=ok target=%s", target)
+                return translation
+    except Exception:
+        logger.exception("translation_provider=libretranslate status=error target=%s", target)
+        return None
+    return None
+
 
 def openai_translate(text: str, target: str) -> str:
     if not OPENAI_API_KEY:
         raise RuntimeError("OpenAI key not configured.")
-    
-    from openai import OpenAI
-    client = OpenAI(api_key=OPENAI_API_KEY)
-    
+    # Try the commonly-used `openai` package first (stable API), then
+    # fall back to the newer `OpenAI` client if available.
     language_names = {
         "hi": "Hindi", "ta": "Tamil", "te": "Telugu", "bn": "Bengali",
         "es": "Spanish", "fr": "French", "ar": "Arabic", "en": "English"
@@ -110,9 +167,11 @@ def openai_translate(text: str, target: str) -> str:
         "Use short, clear sentences and easy words.\n\n"
         f"Text: {text}\n\nTranslation:"
     )
-    
     try:
-        response = client.chat.completions.create(
+        # Classic `openai` package (openai==0.x)
+        import openai as _openai
+        _openai.api_key = OPENAI_API_KEY
+        resp = _openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful translator."},
@@ -121,9 +180,36 @@ def openai_translate(text: str, target: str) -> str:
             temperature=0.2,
             max_tokens=400
         )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        raise RuntimeError(f"OpenAI translation failed: {str(e)}")
+        # Support both response shapes
+        if hasattr(resp, "choices") and len(resp.choices) > 0:
+            choice = resp.choices[0]
+            # new-sdk style
+            if hasattr(choice, "message"):
+                return choice.message.get("content", "").strip()
+            # older style
+            return getattr(choice, "text", "").strip()
+    except Exception:
+        try:
+            # Newer `OpenAI` client
+            from openai import OpenAI as _OpenAIClient
+            client = _OpenAIClient(api_key=OPENAI_API_KEY)
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful translator."},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.2,
+                max_tokens=400
+            )
+            # response shape similar to above
+            if response and getattr(response, "choices", None):
+                ch = response.choices[0]
+                if getattr(ch, "message", None):
+                    return ch.message.get("content", "").strip()
+                return getattr(ch, "text", "").strip()
+        except Exception as e2:
+            raise RuntimeError(f"OpenAI translation failed: {str(e2)}")
 
 def speak_text_in_background(text: str):
     if not TTS_AVAILABLE:
@@ -158,9 +244,10 @@ async def translate(req: TranslateRequest):
     if not translation:
         try:
             translation = openai_translate(text, target)
+            logger.info("translation_provider=openai status=ok target=%s", target)
         except Exception as exc:
             # If both fail, provide a demo translation
-            print(f"Translation error: {exc}")
+            logger.warning("translation_provider=openai status=error target=%s error=%s", target, str(exc))
             
             # Simple demo translations for testing
             demo_translations = {
@@ -174,12 +261,19 @@ async def translate(req: TranslateRequest):
                 "en": text
             }
             
-            if target in demo_translations:
-                translation = demo_translations[target]
-            else:
-                translation = f"[Demo Mode - API Error] {text}"
-                print(f"API Keys - Lingo: {bool(LINGO_API_KEY)}, OpenAI: {bool(OPENAI_API_KEY)}")
-                print(f"Error details: {exc}")
+            # Try LibreTranslate fallback before returning demo text
+            try:
+                lt = await call_libretranslate(text, target)
+                if lt:
+                    translation = lt
+            except Exception:
+                pass
+            if not translation:
+                if target in demo_translations:
+                    translation = demo_translations[target]
+                else:
+                    translation = f"[Demo Mode - API Error] {text}"
+            logger.info("translation_provider=fallback final_target=%s used_demo=%s", target, translation.startswith("[Demo Mode"))
     
     return {"translated_text": translation, "target_lang": target, "success": True}
 
