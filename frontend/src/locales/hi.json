@@ -1,0 +1,19 @@
+{
+  "greeting": "नमस्ते",
+  "welcome": "बहुभाषी स्वास्थ्य सहायक में आपका स्वागत है",
+  "translate": "अनुवाद करें",
+  "reminders": "रिमाइंडर",
+  "emergencyHelp": "आपातकालीन सहायता",
+  "enterText": "अनुवाद के लिए पाठ दर्ज करें",
+  "selectLanguage": "भाषा चुनें",
+  "addReminder": "रिमाइंडर जोड़ें",
+  "medicineName": "दवा का नाम",
+  "dosage": "खुराक",
+  "time": "समय",
+  "submit": "जमा करें",
+  "noReminders": "कोई रिमाइंडर सेट नहीं",
+  "backendStatus": "बैकएंड स्थिति",
+  "searching": "खोज रहे हैं...",
+  "error": "त्रुटि हुई",
+  "success": "सफल"
+}

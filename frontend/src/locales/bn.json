@@ -1,0 +1,19 @@
+{
+  "greeting": "স্বাগতম",
+  "welcome": "বহুভাষিক স্বাস্থ্য সহায়কে আপনাকে স্বাগতম",
+  "translate": "অনুবাদ করুন",
+  "reminders": "অনুস্মারক",
+  "emergencyHelp": "জরুরী সহায়তা",
+  "enterText": "অনুবাদের জন্য পাঠ্য প্রবেশ করুন",
+  "selectLanguage": "ভাষা নির্বাচন করুন",
+  "addReminder": "অনুস্মারক যোগ করুন",
+  "medicineName": "ওষুধের নাম",
+  "dosage": "মাত্রা",
+  "time": "সময়",
+  "submit": "জমা দিন",
+  "noReminders": "কোন অনুস্মারক নেই",
+  "backendStatus": "ব্যাকএন্ড স্থিতি",
+  "searching": "খুঁজছি...",
+  "error": "ত্রুটি ঘটেছে",
+  "success": "সফল"
+}

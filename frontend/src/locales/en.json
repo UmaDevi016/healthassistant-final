@@ -1,0 +1,19 @@
+{
+  "greeting": "Hello",
+  "welcome": "Welcome to Multilingual Health Assistant",
+  "translate": "Translate",
+  "reminders": "Reminders",
+  "emergencyHelp": "Emergency Help",
+  "enterText": "Enter text to translate",
+  "selectLanguage": "Select language",
+  "addReminder": "Add Reminder",
+  "medicineName": "Medicine name",
+  "dosage": "Dosage",
+  "time": "Time",
+  "submit": "Submit",
+  "noReminders": "No reminders set",
+  "backendStatus": "Backend Status",
+  "searching": "Searching...",
+  "error": "Error occurred",
+  "success": "Success"
+}

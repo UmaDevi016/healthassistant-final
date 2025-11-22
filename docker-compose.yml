@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY:-demo}
+      - LINGO_API_KEY=${LINGO_API_KEY:-demo}
+      - LINGO_PROJECT_ID=${LINGO_PROJECT_ID:-demo}
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend/src/locales:/app/frontend/src/locales
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    ports:
+      - "8501:8501"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY:-demo}
+      - LINGO_API_KEY=${LINGO_API_KEY:-demo}
+      - LINGO_PROJECT_ID=${LINGO_PROJECT_ID:-demo}
+    volumes:
+      - ./streamlit_app.py:/app/streamlit_app.py
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  app-data:

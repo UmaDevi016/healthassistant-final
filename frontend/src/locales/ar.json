@@ -1,0 +1,19 @@
+{
+  "greeting": "مرحبا",
+  "welcome": "مرحبا بك في مساعد الصحة متعدد اللغات",
+  "translate": "ترجمة",
+  "reminders": "تذكيرات",
+  "emergencyHelp": "مساعدة طوارئ",
+  "enterText": "أدخل النص للترجمة",
+  "selectLanguage": "اختر اللغة",
+  "addReminder": "إضافة تذكير",
+  "medicineName": "اسم الدواء",
+  "dosage": "الجرعة",
+  "time": "الوقت",
+  "submit": "إرسال",
+  "noReminders": "لا توجد تذكيرات",
+  "backendStatus": "حالة الخادم",
+  "searching": "جاري البحث...",
+  "error": "حدث خطأ",
+  "success": "نجاح"
+}

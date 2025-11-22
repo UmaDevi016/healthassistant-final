@@ -1,0 +1,19 @@
+{
+  "greeting": "Bonjour",
+  "welcome": "Bienvenue dans l'Assistant Santé Multilingue",
+  "translate": "Traduire",
+  "reminders": "Rappels",
+  "emergencyHelp": "Aide d'Urgence",
+  "enterText": "Entrez le texte à traduire",
+  "selectLanguage": "Sélectionner la langue",
+  "addReminder": "Ajouter un rappel",
+  "medicineName": "Nom du médicament",
+  "dosage": "Posologie",
+  "time": "Heure",
+  "submit": "Soumettre",
+  "noReminders": "Pas de rappels",
+  "backendStatus": "État du serveur",
+  "searching": "Recherche en cours...",
+  "error": "Une erreur s'est produite",
+  "success": "Succès"
+}

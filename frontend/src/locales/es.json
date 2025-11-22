@@ -1,0 +1,19 @@
+{
+  "greeting": "Hola",
+  "welcome": "Bienvenido al Asistente de Salud Multilingüe",
+  "translate": "Traducir",
+  "reminders": "Recordatorios",
+  "emergencyHelp": "Ayuda de Emergencia",
+  "enterText": "Ingrese texto para traducir",
+  "selectLanguage": "Seleccionar idioma",
+  "addReminder": "Agregar recordatorio",
+  "medicineName": "Nombre del medicamento",
+  "dosage": "Dosis",
+  "time": "Hora",
+  "submit": "Enviar",
+  "noReminders": "Sin recordatorios",
+  "backendStatus": "Estado del servidor",
+  "searching": "Buscando...",
+  "error": "Se produjo un error",
+  "success": "Éxito"
+}
