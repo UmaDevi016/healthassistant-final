@@ -15,7 +15,7 @@ services:
       - ./backend:/app/backend
       - ./frontend/src/locales:/app/frontend/src/locales
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD-SHELL", "python -c 'import sys, urllib.request as u; r=u.urlopen(\"http://127.0.0.1:8000/health\"); sys.exit(0 if r.getcode()==200 else 1)'"]
       interval: 30s
       timeout: 10s
       retries: 3
