@@ -7,10 +7,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    environment:
-      - GROQ_API_KEY=${GROQ_API_KEY:-demo}
-      - LINGO_API_KEY=${LINGO_API_KEY:-demo}
-      - LINGO_PROJECT_ID=${LINGO_PROJECT_ID:-demo}
+    # For local dev you can still use a .env, but secrets are preferred.
+    env_file:
+      - ./.env
     volumes:
       - ./backend:/app/backend
       - ./frontend/src/locales:/app/frontend/src/locales
@@ -22,6 +21,11 @@ services:
       start_period: 40s
     networks:
       - app-network
+    secrets:
+      - OPENAI_API_KEY
+      - LINGO_API_KEY
+      - GROQ_API_KEY
+      - LINGO_PROJECT_ID
 
   streamlit:
     build:
@@ -47,3 +51,13 @@ networks:
 
 volumes:
   app-data:
+
+secrets:
+  OPENAI_API_KEY:
+    file: ./backend/.secrets/OPENAI_API_KEY
+  LINGO_API_KEY:
+    file: ./backend/.secrets/LINGO_API_KEY
+  GROQ_API_KEY:
+    file: ./backend/.secrets/GROQ_API_KEY
+  LINGO_PROJECT_ID:
+    file: ./backend/.secrets/LINGO_PROJECT_ID

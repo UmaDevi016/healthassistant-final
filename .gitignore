@@ -1,3 +1,12 @@
+# Ignore local environment and secret files
+/backend/.env
+/backend/.secrets/
+.env
+.env.local
+
+# Node modules / build
+/frontend/node_modules/
+/frontend/build/
 # Python
 venv/
 *.pyc
