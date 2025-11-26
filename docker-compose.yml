@@ -1,49 +1,40 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  backend:
+  api:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
+    container_name: healthassistant_api
     ports:
       - "8000:8000"
     environment:
-      - GROQ_API_KEY=${GROQ_API_KEY:-demo}
-      - LINGO_API_KEY=${LINGO_API_KEY:-demo}
-      - LINGO_PROJECT_ID=${LINGO_PROJECT_ID:-demo}
-    volumes:
-      - ./backend:/app/backend
-      - ./frontend/src/locales:/app/frontend/src/locales
+      - LINGO_API_KEY=${LINGO_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     healthcheck:
-      test: ["CMD-SHELL", "python -c 'import sys, urllib.request as u; r=u.urlopen(\"http://127.0.0.1:8000/health\"); sys.exit(0 if r.getcode()==200 else 1)'"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
-      - app-network
+      - ha_net
 
-  streamlit:
+  frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.streamlit
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: healthassistant_frontend
     ports:
       - "8501:8501"
     environment:
-      - GROQ_API_KEY=${GROQ_API_KEY:-demo}
-      - LINGO_API_KEY=${LINGO_API_KEY:-demo}
-      - LINGO_PROJECT_ID=${LINGO_PROJECT_ID:-demo}
-    volumes:
-      - ./streamlit_app.py:/app/streamlit_app.py
+      - BACKEND=${BACKEND}   # important: use service name (http://api:8000) for compose
     depends_on:
-      backend:
+      api:
         condition: service_healthy
     networks:
-      - app-network
+      - ha_net
 
 networks:
-  app-network:
+  ha_net:
     driver: bridge
-
-volumes:
-  app-data:

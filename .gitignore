@@ -4,6 +4,7 @@
 .env
 .env.local
 
+
 # Node modules / build
 /frontend/node_modules/
 /frontend/build/
@@ -29,3 +30,4 @@ Thumbs.db
 backend/.env
 frontend/.env
 .env
+

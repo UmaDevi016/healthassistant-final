@@ -247,3 +247,34 @@ def emergency_alert(payload: Dict[str, Any]):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+# add/ensure these imports at the top
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+# if you already have `app = FastAPI()` keep it; otherwise create it:
+try:
+    app  # if exists, do nothing
+except NameError:
+    app = FastAPI()
+
+# Add CORS middleware so frontend/streamlit can call backend
+origins = [
+    "http://localhost:3000",
+    "http://localhost:8501",
+    "http://0.0.0.0:3000",
+    "http://0.0.0.0:8501",
+    "http://backend:8000",   # allow internal calls by name
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Add a simple health endpoint
+@app.get("/health")
+def health():
+    return {"status": "ok"}

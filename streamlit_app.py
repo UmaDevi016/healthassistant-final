@@ -99,3 +99,23 @@ if st.button("Load reminders"):
     except Exception:
         st.error("Exception when loading reminders.")
         st.code(traceback.format_exc(), language="python")
+import os
+import requests
+import streamlit as st
+
+BACKEND = os.getenv("BACKEND", "http://localhost:8000")
+if not BACKEND.startswith("http://") and not BACKEND.startswith("https://"):
+    BACKEND = "http://" + BACKEND
+
+def post_translate(txt, lang):
+    try:
+        resp = requests.post(
+            f"{BACKEND}/translate",
+            json={"text": txt, "target_lang": lang},
+            timeout=12
+        )
+        resp.raise_for_status()
+        return resp.json()
+    except requests.RequestException as e:
+        st.error(f"Backend request failed: {e}")
+        return None
